@@ -1,7 +1,8 @@
 <?php
 
 include_once('header.php');
-include('task_functions.php');
+include_once('task_functions.php');
+include_once('auth_functions.php');
 
 ?>
     <div class="container">
@@ -13,7 +14,7 @@ include('task_functions.php');
                 <p><label for="user_pass">Пароль<br>
                         <input class="input" id="password" name="password" size="32" type="password" value=""></label>
                 </p>
-                <p class="submit"><input class="button" id="register" name="register" type="submit"
+                <p class="submit"><input class="btn btn-primary" id="register" name="register" type="submit"
                                          value="Зарегистрироваться"></p>
                 <p class="regtext">Уже зарегистрированы? <a href="/auth_page.php">Введите имя пользователя</a>!</p>
             </form>

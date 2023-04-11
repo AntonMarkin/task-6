@@ -8,7 +8,7 @@ define('DB_TABLE_VERSIONS', 'versions');
 function connectDB()
 {
     $dsn = 'mysql:dbname=tasklist;host=127.0.0.1';
-    $pdo = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+    $pdo = new PDO($dsn, DB_USER, DB_PASSWORD);
 
     return $pdo;
 
@@ -21,7 +21,6 @@ function getMigrationFiles($pdo)
 
 
     $query = sprintf('show tables from `%s` like "%s"', DB_NAME, DB_TABLE_VERSIONS);
-    echo $query;
     $data = $pdo->query($query);
     $firstMigration = !$data->num_rows;
 
@@ -32,7 +31,7 @@ function getMigrationFiles($pdo)
     $versionsFiles = array();
 
     $query = sprintf('select `name` from `%s`', DB_TABLE_VERSIONS);
-    $data = $pdo->query($query)->fetch_all(MYSQLI_ASSOC);
+    $data = $pdo->query($query);
 
     foreach ($data as $row) {
         array_push($versionsFiles, $sqlFolder . $row['name']);
@@ -44,7 +43,8 @@ function getMigrationFiles($pdo)
 function migrate($pdo, $file)
 {
 
-    $command = sprintf('mysql -u%s -p%s -h %s -D %s < %s', DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, $file);
+    //$command = sprintf('mysql -u%s -p%s -h %s -D %s < %s', DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, $file);
+    $command = sprintf('mysql -u%s -h %s -D %s < %s', DB_USER, DB_HOST, DB_NAME, $file);
     shell_exec($command);
 
     $baseName = basename($file);
@@ -53,11 +53,11 @@ function migrate($pdo, $file)
     $pdo->query($query);
 }
 
-$conn = connectDB();
+$pdo = connectDB();
 
 // Получаем список файлов для миграций за исключением тех, которые уже есть в таблице versions
 
-$files = getMigrationFiles($conn);
+$files = getMigrationFiles($pdo);
 
 // Проверяем, есть ли новые миграции
 if (empty($files)) {
@@ -67,7 +67,7 @@ if (empty($files)) {
 
     // Накатываем миграцию для каждого файла
     foreach ($files as $file) {
-        migrate($conn, $file);
+        migrate($pdo, $file);
         // Выводим название выполненного файла
         echo basename($file) . '<br>';
     }

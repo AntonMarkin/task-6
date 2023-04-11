@@ -1,53 +1,38 @@
 <?php
-session_start();
 
-include('connection.php');
 
-if(isset($_SESSION["session_username"])){
-    header("Location: intropage.php");
-}
+include_once('connection.php');
 
-function register()
+function register($login, $password)
 {
-    if (!empty($_POST['login']) && !empty($_POST['password'])) {
+    if (!empty($login) && !empty($password)) {
         $pdo = connectDB();
         $query = $pdo->prepare('select * from users where login = ?');
-        $query->execute(array($_POST['login']));
-
-        if ($query == null) {
+        $query->execute(array($login));
+        if ($query->rowCount() == 0) {
             $query = $pdo->prepare('insert into users(login, password) values(?, ?)');
-            $query->execute(array($_POST['login'], $_POST['password']));
-            if ($query) {
-                $message = "Account Successfully Created";
-            } else {
-                $message = "Failed to insert data information!";
-            }
-        } else {
-            $message = "That username already exists! Please try another one!";
+            $query->execute(array($login, $password));
         }
-    } else {
-        $message = "All fields are required!";
     }
+    logIn($login, $password);
 }
 
-function auth()
+function logIn($login, $password)
 {
-    if (!empty($_POST['login']) && !empty($_POST['password'])) {
+    if (!empty($login) && !empty($password)) {
         $pdo = connectDB();
-
         $query = $pdo->prepare('select * from users where login = ? and password = ?');
-
+        $query->execute(array($login, $password));
         if ($query != 0) {
-            while ($row = mysql_fetch_assoc($query)) {
-                $dbusername = $row['username'];
+            foreach ($query as $row) {
+                $dblogin = $row['login'];
                 $dbpassword = $row['password'];
             }
-            if ( == $dbusername && $password == $dbpassword) {
-                // старое место расположения
-                //  session_start();
-                $_SESSION['session_username'] = $username;
-                /* Перенаправление браузера */
-                header("Location: intropage.php");
+            if ($login == $dblogin && $password == $dbpassword) {
+                session_start();
+                $_SESSION['session_username'] = $login;
+
+                header("Location: index.php");
             }
         } else {
             //  $message = "Invalid username or password!";
@@ -59,10 +44,11 @@ function auth()
     }
 }
 
-if (isset($_POST["register"])) {
-    register();
+if (isset($_POST['register'])) {
+    register(htmlspecialchars($_POST['login']), htmlspecialchars($_POST['password']));
 }
-if (isset($_POST["login"])) {
-    auth();
+if (isset($_POST['logIn'])) {
+    logIn(htmlspecialchars($_POST['login']), htmlspecialchars($_POST['password']));
 }
+
 ?>

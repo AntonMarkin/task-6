@@ -1,8 +1,9 @@
 -- Таблица задач --
 create table if not exists `tasks` (
     `id` int(10) unsigned not null auto_increment,
+    `user_id` int(10) unsigned not null,
     constraint `user_id`
-    foreign key(user_id)  REFERENCES users (id)
+    foreign key(user_id)  REFERENCES users (id),
     `description` varchar(255) not null,
     `status` varchar(255) not null,
     `created_at` timestamp default current_timestamp,

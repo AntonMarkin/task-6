@@ -1,80 +1,83 @@
 <?php
-if (!isset($_COOKIE['task_count']))
-    setcookie('task_count', 0);
 
-function addTask()
+include_once('connection.php');
+$pdo = connectDB();
+
+function getAllTasks($user_id)
 {
-    $count = $_COOKIE['task_count'];
+    global $pdo;
+    $query = $pdo->prepare('select * from tasks where user_id = ?');
+    $query->execute(array($user_id));
+    return $query;
+}
 
-    $task = 'u ' . $_POST['task'];
-    echo($task);
-
-    setcookie('tasks[' . $count . ']', $task);
-    setcookie('task_count', $count + 1);
-
+function addTask($user_id, $description)
+{
+    global $pdo;
+    $query = $pdo->prepare('insert into tasks (user_id, description, status) values(?, ?, ?)');
+    $query->execute([$user_id, $description, 'Unready']);
     header('Location: ' . $_SERVER['REQUEST_URI']);
 }
 
-function changeTaskStatus()
+function changeTaskStatus($id, $status, $user_id)
 {
-    $task = $_COOKIE['tasks'][$_POST['key']];
-    $task = $_POST['status'] . '' . substr($task, 2);
-
-    setcookie('tasks[' . $_POST['key'] . ']', $task);
-
+    global $pdo;
+    $query = $pdo->prepare('update tasks set status = ? where user_id = ? and id = ?');
+    $query->execute([$status, $user_id, $id]);
     header('Location: ' . $_SERVER['REQUEST_URI']);
 }
 
-function deleteTask()
+function deleteTask($id, $user_id)
 {
-    setcookie('tasks[' . $_POST['key'] . ']', '', time() - 3600);
+    global $pdo;
+    $query = $pdo->prepare('delete from tasks where user_id = ? and id = ?');
+    $query->execute(array($user_id, $id));
     header('Location: ' . $_SERVER['REQUEST_URI']);
 }
 
-function readyAllTasks()
+function readyAllTasks($user_id)
 {
-    if (isset($_COOKIE['tasks'])) {
-        $tasks = $_COOKIE['tasks'];
-        ksort($tasks);
-        foreach ($tasks as $key => $value) {
-            $task = 'r ' . substr($value, 2);
-            setcookie('tasks[' . $key . ']', $task);
+    $tasks = getAllTasks($user_id);
+    if (isset($tasks)) {
+        foreach ($tasks as $task) {
+            changeTaskStatus($task['id'], 'Ready', $task['user_id']);
         }
     }
-
     header('Location: ' . $_SERVER['REQUEST_URI']);
 }
 
-function removeAllTasks()
+function removeAllTasks($user_id)
 {
-    if (isset($_COOKIE['tasks'])) {
-        $tasks = $_COOKIE['tasks'];
-        ksort($tasks);
-        foreach ($tasks as $key => $value) {
-            setcookie('tasks[' . $key . ']', '', time() - 3600);
+    $tasks = getAllTasks($user_id);
+    if (isset($tasks)) {
+        foreach ($tasks as $task) {
+            deleteTask($task['id'], $task['user_id']);
         }
     }
-
     header('Location: ' . $_SERVER['REQUEST_URI']);
 }
 
 //add task
 if (isset($_POST['add_task'])) {
-    addTask();
+    addTask(getUser()['id'],$_POST['description']);
 }
 //change task status
 if (isset($_POST['change_task_status'])) {
-    changeTaskStatus();
+    $id = $_POST['id'];
+    settype($id, 'int');
+    changeTaskStatus($id, $_POST['status'], getUser()['id']);
 }
 //delete task
 if (isset($_POST['delete_task'])) {
-    deleteTask();
+    $id = $_POST['id'];
+    settype($id, 'int');
+    deleteTask($id, getUser()['id']);
 }
 //ready all tasks
 if (isset($_POST['ready_all_tasks'])) {
-    readyAllTasks();
+    readyAllTasks(getUser()['id']);
 }
 //remove all tasks
 if (isset($_POST['remove_all_tasks'])) {
-    removeAllTasks();
+    removeAllTasks(getUser()['id']);
 }
