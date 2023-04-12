@@ -3,7 +3,7 @@
         <?php
         if (isset($_SESSION['session_username'])) {
             echo '<ul class="nav justify-content-center border-bottom pb-3 mb-3">
-            <li class="nav-item"><a href="" class="nav-link px-2 text-muted">' . $_SESSION['session_username'] . '</a></li>
+            <li class="nav-item"><a href="" class="nav-link px-2 text-muted">' . getUser()['login'] . '</a></li>
             <li class="nav-item"><a href="/logout.php" class="nav-link px-2 text-muted">Выход</a></li>
         </ul>';
         } else {

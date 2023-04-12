@@ -31,7 +31,7 @@ function deleteTask($id, $user_id)
 {
     global $pdo;
     $query = $pdo->prepare('delete from tasks where user_id = ? and id = ?');
-    $query->execute(array($user_id, $id));
+    $query->execute([$user_id, $id]);
     header('Location: ' . $_SERVER['REQUEST_URI']);
 }
 

@@ -1,3 +1,4 @@
+<?php include_once('connection.php') ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,13 +14,12 @@
             <span class="fs-4">TaskList</span>
         </a>
         <?php
-        if (isset($_SESSION['session_username'])){
+        if (isset($_SESSION['session_username'])) {
             echo '        <ul class="nav nav-pills">
-            <li class="nav-item"><a href="" class="nav-link text-muted">'.$_SESSION['session_username'].'</a></li>
+            <li class="nav-item"><a href="" class="nav-link text-muted">' . getUser()['login'] . '</a></li>
             <li class="nav-item"><a href="/logout.php" class="nav-link">Выход</a></li>
         </ul>';
-        }
-        else{
+        } else {
             echo '        <ul class="nav nav-pills">
             <li class="nav-item"><a href="/auth_page.php" class="nav-link">Вход</a></li>
             <li class="nav-item"><a href="/registration_page.php" class="nav-link">Регистрация</a></li>

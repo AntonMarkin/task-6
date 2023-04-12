@@ -11,7 +11,7 @@ function register($login, $password)
         $query->execute(array($login));
         if ($query->rowCount() == 0) {
             $query = $pdo->prepare('insert into users(login, password) values(?, ?)');
-            $query->execute(array($login, $password));
+            $query->execute([$login, password_hash($password, PASSWORD_BCRYPT)]);
         }
     }
     logIn($login, $password);
@@ -21,26 +21,18 @@ function logIn($login, $password)
 {
     if (!empty($login) && !empty($password)) {
         $pdo = connectDB();
-        $query = $pdo->prepare('select * from users where login = ? and password = ?');
-        $query->execute(array($login, $password));
-        if ($query != 0) {
-            foreach ($query as $row) {
-                $dblogin = $row['login'];
-                $dbpassword = $row['password'];
-            }
-            if ($login == $dblogin && $password == $dbpassword) {
-                session_start();
-                $_SESSION['session_username'] = $login;
-
-                header("Location: index.php");
-            }
+        $query = $pdo->prepare('select * from users where login = ?');
+        $userExist = $query->execute(array($login));
+        $user = $query->fetch();
+        if ($userExist && password_verify($password, $user['password'])) {
+            session_start();
+            $_SESSION['session_username'] = $user['id'];
+            header('Location: index.php');
         } else {
-            //  $message = "Invalid username or password!";
-
-            echo "Invalid username or password!";
+            echo 'Invalid username or password!';
         }
     } else {
-        $message = "All fields are required!";
+        echo 'All fields are required!';
     }
 }
 
